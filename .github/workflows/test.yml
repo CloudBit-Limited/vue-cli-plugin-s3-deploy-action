@@ -1,0 +1,35 @@
+name: Test Action
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: vue-s3-deploy-action:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify Docker image
+        run: |
+          echo "Checking Node.js version..."
+          docker run --rm vue-s3-deploy-action:test node --version
+          echo "Checking Yarn version..."
+          docker run --rm vue-s3-deploy-action:test yarn --version
+          echo "Checking entrypoint.sh exists and is executable..."
+          docker run --rm vue-s3-deploy-action:test ls -l /entrypoint.sh
